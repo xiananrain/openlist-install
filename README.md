@@ -1,6 +1,7 @@
 下载\
 ```
-wget https://raw.githubusercontent.com/xiananrain/openlist-install/refs/heads/main/openlistinstall.sh```
+wget https://raw.githubusercontent.com/xiananrain/openlist-install/refs/heads/main/openlistinstall.sh
+```
 /
 chmod +x openlistinstall.sh
 \
@@ -12,4 +13,3 @@ chmod +x openlistinstall.sh
 
 
 cat /var/tmp/openlist_update.log
-
