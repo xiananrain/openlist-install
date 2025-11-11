@@ -1,6 +1,9 @@
-wget https://raw.githubusercontent.com/xiananrain/openlist-install/refs/heads/main/openlistinstall.sh
-
+下载
+bash```
+wget https://raw.githubusercontent.com/xiananrain/openlist-install/refs/heads/main/openlistinstall.sh```
+\
 chmod +x openlistinstall.sh
+\
 ./openlistinstall.sh
 
 
