@@ -68,7 +68,7 @@ if [ "$LATEST_VER" = "$CURRENT_VER" ] && [ "$LATEST_VER" != "unknown" ]; then
 fi
 
 log "开始下载最新版本包..."
-TMP_TAR="/tmp/${TAR_NAME}"
+TMP_TAR="/usr/home/s13xianan/tmp/${TAR_NAME}"
 
 if fetch -o "$TMP_TAR" "$DOWNLOAD_URL"; then
     log "下载完成：$TMP_TAR"
