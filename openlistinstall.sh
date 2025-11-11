@@ -4,9 +4,9 @@
 #
 
 APP_NAME="openlist"
-INSTALL_DIR="/usr/local/openlist"
-BACKUP_DIR="/usr/local/openlist_backup"
-LOG_FILE="/var/tmp/openlist_update.log"
+INSTALL_DIR="/usr/home/s13xianan/openlist"
+BACKUP_DIR="/usr/home/s13xianan/openlist_backup"
+LOG_FILE="/usr/home/s13xianan/var/openlist_update.log"
 GITHUB_REPO="OpenListTeam/OpenList"
 TAR_NAME="openlist-freebsd-amd64.tar.gz"
 DOWNLOAD_URL="https://github.com/${GITHUB_REPO}/releases/latest/download/${TAR_NAME}"
