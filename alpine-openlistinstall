@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/sh
+# 修正：Alpine 默认使用 /bin/sh (BusyBox ash)
 set -euo pipefail
 
 # ================= 已预设配置（无需修改）=================
@@ -10,10 +11,13 @@ FILE_NAME="openlist-linux-musl-amd64.tar.gz"  # 下载文件名
 # ================= 核心功能函数 =================
 # 1. 检查依赖工具
 check_dependencies() {
-  local dependencies=("curl" "tar")
-  for tool in "${dependencies[@]}"; do
-    if ! command -v "$tool" &> /dev/null; then
-      echo "❌ 错误：未找到必需工具 $tool，请先通过 pkg install $tool 安装"
+  # 修正：去除了不支持的数组写法
+  local dependencies="curl tar"
+  for tool in $dependencies; do
+    # 修正：使用标准的重定向写法替代 &>
+    if ! command -v "$tool" > /dev/null 2>&1; then
+      # 修正：Alpine 的包管理器是 apk
+      echo "❌ 错误：未找到必需工具 $tool，请先通过 apk add $tool 安装"
       exit 1
     fi
   done
@@ -50,7 +54,8 @@ download_file() {
 # 4. 解压文件
 extract_file() {
   echo -e "\n📦 开始解压安装包..."
-  if ! tar -zxvf "$FILE_NAME" &> /dev/null; then
+  # 修正：使用标准的重定向写法
+  if ! tar -zxvf "$FILE_NAME" > /dev/null 2>&1; then
     echo "❌ 解压失败！请确认文件为合法 tar.gz 格式"
     exit 1
   fi
@@ -62,16 +67,21 @@ extract_file() {
 # 5. 执行重启命令
 restart_service() {
   echo -e "\n🔄 启动并重启 OpenList 服务..."
-  cd "$HOME/$EXTRACTED_DIR" || { echo "❌ 无法进入解压目录"; exit 1; }
+  # 修正：修复了目录跳转逻辑，应该是 $TARGET_DIR 里的解压目录
+  cd "$TARGET_DIR/$EXTRACTED_DIR" || { echo "❌ 无法进入解压目录 $TARGET_DIR/$EXTRACTED_DIR"; exit 1; }
+  
   if [ ! -f "./openlist" ]; then
     echo "❌ 错误：未找到 openlist 可执行文件"
     exit 1
   fi
-  # 直接执行重启命令（不添加执行权限）
+  
+  # 建议：顺手给二进制文件赋予执行权限，避免 tar 包没带权限导致翻车
+  chmod +x ./openlist
+  
   if ./openlist restart; then
     echo -e "\n🎉 操作成功！OpenList 已重启完成"
   else
-    echo -e "\n❌ OpenList 重启失败，可能是文件缺少执行权限，可手动运行 chmod +x ./openlist 后重试"
+    echo -e "\n❌ OpenList 重启失败，请检查相关日志。"
     exit 1
   fi
 }
