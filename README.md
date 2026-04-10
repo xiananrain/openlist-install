@@ -4,7 +4,7 @@ https://github.com/OpenListTeam/OpenList
 
 下载
 ```
-wget https://raw.githubusercontent.com/xiananrain/openlist-install/refs/heads/main/openlistinstall.sh
+wget https://raw.githubusercontent.com/xiananrain/openlist-install/refs/heads/main/bsd-openlistinstall.sh
 ```
 ```
 chmod +x openlistinstall.sh
