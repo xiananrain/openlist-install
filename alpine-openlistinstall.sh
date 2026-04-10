@@ -7,7 +7,8 @@ TARGET_DIR="/opt/openlist"
 FILE_NAME="openlist-linux-musl-amd64.tar.gz"
 
 check_dependencies() {
-  local dependencies="curl tar"
+  # 增加了 openrc 依赖检查（绝大多数 Alpine 默认自带）
+  local dependencies="curl tar openrc"
   for tool in $dependencies; do
     if ! command -v "$tool" > /dev/null 2>&1; then
       echo "❌ 错误：未找到必需工具 $tool，请先通过 apk add $tool 安装"
@@ -24,7 +25,6 @@ create_target_dir() {
   else
     echo "📂 目标目录 $TARGET_DIR 已存在"
   fi
-  # 进入目标目录后，后续的下载和解压都在此目录下进行
   cd "$TARGET_DIR" || { echo "❌ 无法进入目录 $TARGET_DIR"; exit 1; }
 }
 
@@ -48,25 +48,57 @@ extract_file() {
     echo "❌ 解压失败"
     exit 1
   fi
-  # 移除了 EXTRACTED_DIR 的获取逻辑，因为文件直接解压在当前目录
+  
+  if [ ! -f "./openlist" ]; then
+    echo "❌ 错误：解压后未找到可执行文件 ./openlist"
+    exit 1
+  fi
+  chmod +x ./openlist
   echo "✅ 解压完成"
+}
+
+configure_daemon() {
+  echo -e "\n⚙️ 配置 OpenRC 守护进程..."
+  
+  # 写入 OpenRC 服务脚本
+  cat > /etc/init.d/openlist << 'EOF'
+#!/sbin/openrc-run
+
+name="openlist"
+description="OpenList Daemon Service"
+command="/opt/openlist/openlist"
+command_args="server"
+command_background="yes"
+directory="/opt/openlist"
+pidfile="/run/${RC_SVCNAME}.pid"
+output_log="/var/log/openlist.log"
+error_log="/var/log/openlist.err"
+
+depend() {
+    need net
+    use dns logger
+    after firewall
+}
+EOF
+
+  # 赋予执行权限
+  chmod +x /etc/init.d/openlist
+  
+  # 添加到开机自启
+  rc-update add openlist default > /dev/null 2>&1
+  echo "✅ 守护进程配置完成，已设置开机自启"
 }
 
 restart_service() {
   echo -e "\n🔄 启动服务..."
-  # 移除了 cd 命令，当前已经在 $TARGET_DIR 中
   
-  if [ ! -f "./openlist" ]; then
-    echo "❌ 错误：未找到可执行文件 ./openlist"
-    exit 1
-  fi
-  
-  chmod +x ./openlist
-  
-  if ./openlist restart; then
-    echo -e "\n🎉 操作成功"
+  # 通过 OpenRC 启动/重启服务
+  if rc-service openlist restart || rc-service openlist start; then
+    echo -e "\n🎉 操作成功！OpenList 已作为守护进程在后台运行。"
+    echo -e "📄 运行日志: \033[36m/var/log/openlist.log\033[0m"
+    echo -e "📄 错误日志: \033[31m/var/log/openlist.err\033[0m"
   else
-    echo -e "\n❌ 重启失败"
+    echo -e "\n❌ 启动失败，请检查日志 /var/log/openlist.err"
     exit 1
   fi
 }
@@ -76,4 +108,5 @@ check_dependencies
 create_target_dir
 download_file
 extract_file
+configure_daemon
 restart_service
